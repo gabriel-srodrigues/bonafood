@@ -53,7 +53,7 @@ public class CidadeController {
 	public CidadeModel buscar(@PathVariable Long cidadeId) {
 		Cidade cidade = cadastroCidade.buscarOuFalhar(cidadeId);
 		
-		return cidadeModelAssembler.toModel(cidade);
+		return cidadeModelAssembler.toModel(cidade); 
 	}
 	
 	@PostMapping
