@@ -2,10 +2,10 @@ package br.com.bonafood.api.controller;
 
 import java.util.List;
 
-import org.springframework.beans.BeanUtils;
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.bonafood.domain.exception.EntidadeEmUsoException;
-import br.com.bonafood.domain.exception.EntidadeNaoEncontradaException;
+import br.com.bonafood.api.assembler.CozinhaInputDisassembler;
+import br.com.bonafood.api.assembler.CozinhaModelAssembler;
+import br.com.bonafood.api.model.CozinhaModel;
+import br.com.bonafood.api.model.input.CozinhaInput;
 import br.com.bonafood.domain.model.Cozinha;
 import br.com.bonafood.domain.repository.CozinhaRepository;
 import br.com.bonafood.domain.service.CadastroCozinhaService;
@@ -32,56 +34,49 @@ public class CozinhaController {
 	@Autowired
 	private CadastroCozinhaService cadastroCozinha;
 	
+	@Autowired
+	private CozinhaModelAssembler cozinhaModelAssembler;
+	
+	@Autowired
+	private CozinhaInputDisassembler cozinhaInputDisassembler;
+	
 	@GetMapping
-	public List<Cozinha> listar() {
-		return cozinhaRepository.listar();
+	public List<CozinhaModel> listar() {
+		List<Cozinha> todasCozinhas = cozinhaRepository.findAll();
+		
+		return cozinhaModelAssembler.toCollectionModel(todasCozinhas);
 	}
 	
 	@GetMapping("/{cozinhaId}")
-	public ResponseEntity<Cozinha> buscar(@PathVariable Long cozinhaId) {
-		Cozinha cozinha = cozinhaRepository.buscar(cozinhaId);
+	public CozinhaModel buscar(@PathVariable Long cozinhaId) {
+		Cozinha cozinha = cadastroCozinha.buscarOuFalhar(cozinhaId);
 		
-		if (cozinha != null) {
-			return ResponseEntity.ok(cozinha);
-		}
-		
-		return ResponseEntity.notFound().build();
+		return cozinhaModelAssembler.toModel(cozinha);
 	}
 	
 	@PostMapping
-	@ResponseStatus(code = HttpStatus.CREATED)
-	public Cozinha adicionar(@RequestBody Cozinha cozinha) {
-		return cadastroCozinha.salvar(cozinha);
+	@ResponseStatus(HttpStatus.CREATED)
+	public CozinhaModel adicionar(@RequestBody @Valid CozinhaInput cozinhaInput) {
+		Cozinha cozinha = cozinhaInputDisassembler.toDomainObject(cozinhaInput);
+		cozinha = cadastroCozinha.salvar(cozinha);
+		
+		return cozinhaModelAssembler.toModel(cozinha);
 	}
 	
 	@PutMapping("/{cozinhaId}")
-	public ResponseEntity<Cozinha> atualizar(@PathVariable Long cozinhaId,
-			@RequestBody Cozinha cozinha) {
-		Cozinha cozinhaAtual = cozinhaRepository.buscar(cozinhaId);
+	public CozinhaModel atualizar(@PathVariable Long cozinhaId,
+			@RequestBody @Valid CozinhaInput cozinhaInput) {
+		Cozinha cozinhaAtual = cadastroCozinha.buscarOuFalhar(cozinhaId);
+		cozinhaInputDisassembler.copyToDomainObject(cozinhaInput, cozinhaAtual);
+		cozinhaAtual = cadastroCozinha.salvar(cozinhaAtual);
 		
-		if (cozinhaAtual != null) {
-			BeanUtils.copyProperties(cozinha, cozinhaAtual, "id");
-			
-			cozinhaAtual = cadastroCozinha.salvar(cozinhaAtual);
-			return ResponseEntity.ok(cozinhaAtual);
-		}
-		
-		return ResponseEntity.notFound().build();
+		return cozinhaModelAssembler.toModel(cozinhaAtual);
 	}
 	
 	@DeleteMapping("/{cozinhaId}")
-	public ResponseEntity<?> remover(@PathVariable Long cozinhaId) {
-		try {
-			cadastroCozinha.excluir(cozinhaId);	
-			return ResponseEntity.noContent().build();
-			
-		} catch (EntidadeNaoEncontradaException e) {
-			return ResponseEntity.notFound().build();
-			
-		} catch (EntidadeEmUsoException e) {
-			return ResponseEntity.status(HttpStatus.CONFLICT)
-					.body(e.getMessage());
-		}
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void remover(@PathVariable Long cozinhaId) {
+		cadastroCozinha.excluir(cozinhaId);
 	}
 	
 }

@@ -14,10 +14,10 @@ import lombok.EqualsAndHashCode;
 @Entity
 public class Permissao {
 
-	@EqualsAndHashCode.Include 
-	@Id 
+	@EqualsAndHashCode.Include
+	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id; 
+	private Long id;
 	
 	@Column(nullable = false)
 	private String nome;

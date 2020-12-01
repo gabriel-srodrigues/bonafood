@@ -1,20 +1,19 @@
 package br.com.bonafood.domain.repository;
 
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import br.com.bonafood.domain.model.Cozinha;
 
-@Component
-public interface CozinhaRepository {
+@Repository
+public interface CozinhaRepository extends CustomJpaRepository<Cozinha, Long> {
 
-	List<Cozinha> listar();
-	List<Cozinha> consultarPorNome(String nome);
-	Cozinha buscar(Long id);
+	List<Cozinha> findTodasByNomeContaining(String nome);
 	
+	Optional<Cozinha> findByNome(String nome);
 	
-	Cozinha salvar(Cozinha cozinha);
-	void remover(Long id);
+	boolean existsByNome(String nome);
 	
 }
