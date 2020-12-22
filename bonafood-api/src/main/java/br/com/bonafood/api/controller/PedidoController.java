@@ -52,34 +52,34 @@ public class PedidoController {
 	@Autowired
 	private PedidoInputDisassembler pedidoInputDisassembler;
 	
-	@GetMapping
-	public MappingJacksonValue listar(@RequestParam(required = false) String campos) {
-	
-		List<Pedido> todosPedidos = pedidoRepository.findAll();
-		List<PedidoResumoModel> pedidosResumModel = pedidoResumoModelAssembler.toCollectionModel(todosPedidos);
-		
-		MappingJacksonValue pedidosWrapper = new MappingJacksonValue(pedidosResumModel);
-		
-		SimpleFilterProvider filterProvider = new SimpleFilterProvider();
-		filterProvider.addFilter("pedidoFilter", SimpleBeanPropertyFilter.serializeAll());
-		
-		if(StringUtils.isNotBlank(campos)) {
-			campos = campos.replaceAll("[ ]", "");
-			filterProvider.addFilter("pedidoFilter", SimpleBeanPropertyFilter.filterOutAllExcept(campos.split(",")));
-		}
-		
-		pedidosWrapper.setFilters(filterProvider);
-		
-		return pedidosWrapper;
-	}
-	
 //	@GetMapping
-//	public List<PedidoResumoModel> listar() {
+//	public MappingJacksonValue listar(@RequestParam(required = false) String campos) {
+//	
 //		List<Pedido> todosPedidos = pedidoRepository.findAll();
+//		List<PedidoResumoModel> pedidosResumModel = pedidoResumoModelAssembler.toCollectionModel(todosPedidos);
 //		
-//		return pedidoResumoModelAssembler.toCollectionModel(todosPedidos);
+//		MappingJacksonValue pedidosWrapper = new MappingJacksonValue(pedidosResumModel);
+//		
+//		SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+//		filterProvider.addFilter("pedidoFilter", SimpleBeanPropertyFilter.serializeAll());
+//		
+//		if(StringUtils.isNotBlank(campos)) {
+//			campos = campos.replaceAll("[ ]", "");
+//			filterProvider.addFilter("pedidoFilter", SimpleBeanPropertyFilter.filterOutAllExcept(campos.split(",")));
+//		}
+//		
+//		pedidosWrapper.setFilters(filterProvider);
+//		
+//		return pedidosWrapper;
 //	}
 //	
+	@GetMapping
+	public List<PedidoResumoModel> listar() {
+		List<Pedido> todosPedidos = pedidoRepository.findAll();
+		
+		return pedidoResumoModelAssembler.toCollectionModel(todosPedidos);
+	}
+	
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public PedidoModel adicionar(@Valid @RequestBody PedidoInput pedidoInput) {
